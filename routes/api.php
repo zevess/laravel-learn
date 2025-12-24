@@ -22,5 +22,9 @@ Route::prefix('auth')->group(function () {
 
 
 Route::middleware('auth:sanctum')->group(function(){
-    Route::apiResource('posts', PostController::class)->except('create', 'edit');
+    // Route::apiResource('posts', PostController::class)->except('create', 'edit');
+
+    Route::put('posts/{post}', [PostController::class,'update'])->can('update', 'post');
+    Route::delete('posts/{post}', [PostController::class,'destroy'])->can('delete', 'post');
+
 });

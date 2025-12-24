@@ -11,13 +11,15 @@ use App\Models\Post;
 use App\Services\Interfaces\PostServiceInterface;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class PostController extends Controller
 {
 
     public function __construct(
         private PostServiceInterface $postService
-    ){}
+    ) {
+    }
 
     public function index(): PostCollection
     {
@@ -25,37 +27,48 @@ class PostController extends Controller
         return new PostCollection($posts);
     }
 
-    public function show(int $id): PostResource | JsonResponse
+    public function show(int $id): PostResource|JsonResponse
     {
-       $post = $this->postService->getByIdApi($id);
-       if(!$post) return response()->json(['message' => 'not found'], 404);
+        $post = $this->postService->getByIdApi($id);
+        if (!$post)
+            return response()->json(['message' => 'not found'], 404);
 
-       return new PostResource($post);
+        return new PostResource($post);
     }
 
     public function store(StorePostRequest $request): PostResource
     {
         $data = $request->validated();
         $data['user_id'] = auth()->id();
-        
+
         $post = $this->postService->createApi($data);
 
         return new PostResource($post);
 
     }
 
-    public function update(UpdatePostRequest $request, int $id): PostResource | JsonResponse
+    public function update(UpdatePostRequest $request, int $id): PostResource|JsonResponse
     {
+        $post = $this->postService->getByIdApi($id);
+
+        Gate::authorize('update', $post);
+
         $post = $this->postService->updateApi($id, $request->validated());
-        if(!$post) return response()->json(['message'=> 'not found'], 404);
+        if (!$post)
+            return response()->json(['message' => 'not found'], 404);
 
         return new PostResource($post);
     }
 
-    public function destroy(int $id): PostResource | JsonResponse
+    public function destroy(int $id): PostResource|JsonResponse
     {
+        $post = $this->postService->getByIdApi($id);
+
+        Gate::authorize('delete', $post);
+
         $deleted = $this->postService->deleteApi($id);
-        if(!$deleted) return response()->json(['message'=> 'not found'],404);
+        if (!$deleted)
+            return response()->json(['message' => 'not found'], 404);
         return response()->json(['message' => 'deleted']);
     }
 }
