@@ -20,8 +20,6 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-Route::get('posts', [PostController::class, 'index']);
-Route::get('posts/{id}', [PostController::class,'show']);
 
 Route::middleware('auth:sanctum')->group(function(){
     Route::apiResource('posts', PostController::class)->except('create', 'edit');
